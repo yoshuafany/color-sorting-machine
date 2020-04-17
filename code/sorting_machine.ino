@@ -1,9 +1,6 @@
 #include <Servo.h>
 #include <AntaresESP8266HTTP.h>
-#include <ESP8266WiFi.h>
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>
+
 #define ACCESSKEY "9cbd3b8742d10603:3207c4ec3adddb85"
 #define WIFISSID "WiWiN"
 #define PASSWORD "08121974"
@@ -45,7 +42,8 @@ void setup() {
   digitalWrite(S1, LOW);
   digitalWrite(D1, HIGH);
   digitalWrite(D2, HIGH);
-  attachInterrupt(digitalPinToInterrupt(D1), wifimanager, FALLING);
+  attachInterrupt(digitalPinToInterrupt(D1), kalibrasi_good, FALLING);
+  attachInterrupt(digitalPinToInterrupt(D2), kalibrasi_bad, FALLING);
   myServo.attach(D8);
   Serial.begin(9600);
 }
@@ -96,16 +94,76 @@ void loop() {
 
 }
 
-void wifimanager() {
+void kalibrasi_good() {
   if ((millis() - previousMillis2) > 100) {
-    Serial.begin(115200);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.println("Menunggu Koneksi");
-    WiFiManager wifiManager;
-    wifiManager.resetSettings();
-    wifiManager.autoConnect("Wifi Manager");
-  }
+    for (int i = 0; i < 5; i++) {
+      red[i] = read_R();
+      green[i] = read_G();
+      blue[i] = read_B();
+    }
+    for (int j = 0; j < 5; j++) {
+      batas_red += red[j];
+      batas_green += green[j];
+      batas_blue += blue[j];
+    }
+    batas_red /= 5;
+    batas_green /= 5;
+    batas_blue /= 5;
+
+    batas_red += 20;
+    batas_red1 = batas_red - 40;
+    batas_green += 20;
+    batas_green1 = batas_green - 40;
+    batas_blue += 20;
+    batas_blue1 = batas_blue - 40;
+    Serial.print(batas_red);
+    Serial.print("\t");
+    Serial.print(batas_red1);
+    Serial.print("\t");
+    Serial.print(batas_green);
+    Serial.print("\t");
+    Serial.print(batas_green1);
+    Serial.print("\t");
+    Serial.print(batas_blue);
+    Serial.print("\t");
+    Serial.println(batas_blue1);
     previousMillis2 = millis();
+  }
+}
+
+void kalibrasi_bad() {
+  if ((millis() - previousMillis3) > 100) {
+    for (int i = 0; i < 5; i++) {
+      red[i] = read_R();
+      green[i] = read_G();
+      blue[i] = read_B();
+    }
+    for (int j = 0; j < 5; j++) {
+      batas_red2 += red[j];
+      batas_green2 += green[j];
+      batas_blue2 += blue[j];
+    }
+    batas_red2 /= 5;
+    batas_green2 /= 5;
+    batas_blue2 /= 5;
+
+    batas_red2 += 20;
+    batas_red3 = batas_red2 - 40;
+    batas_green2 += 20;
+    batas_green3 = batas_green2 - 40;
+    batas_blue2 += 20;
+    batas_blue3 = batas_blue2 - 40;
+    Serial.print(batas_red2);
+    Serial.print("\t");
+    Serial.print(batas_red3);
+    Serial.print("\t");
+    Serial.print(batas_green2);
+    Serial.print("\t");
+    Serial.print(batas_green3);
+    Serial.print("\t");
+    Serial.print(batas_blue2);
+    Serial.print("\t");
+    Serial.println(batas_blue3);
+    previousMillis3 = millis();
   }
 }
